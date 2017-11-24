@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<BinaryTreeCustom.Node<K, V>> {
     private Node<K, V> root;
     private int size;
-    private int modCount = 0;
+    private int modificationCount = 0;
     
     private final Comparator<? super K> comparator;
     
@@ -78,8 +78,8 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         return null;
     }
     
-    
     public void add(K key, V value) {
+        modificationCount++;
         Node<K, V> x = root;
         Node<K, V> y = null;
         while (x != null) {
@@ -107,10 +107,11 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
                 y.right = newNode;
             }
         }
+        size++;
     }
     
-    //TODO возвращать результат
     public void remove(K key) {
+        modificationCount++;
         Node<K, V> x = root;
         Node<K, V> prevLevelRoot = null;
         while (x != null) {
@@ -154,6 +155,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
             x.key = leftMost.key;
             x.value = leftMost.value;
         }
+        size--;
     }
     
     public Node<K, V> next() {
@@ -197,7 +199,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         int expectedModCount;
         
         EntryIterator(Node<K, V> first) {
-            expectedModCount = modCount;
+            expectedModCount = modificationCount;
             lastReturned = null;
             next = first;
         }
@@ -217,7 +219,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
             if (e == null) {
                 throw new NoSuchElementException();
             }
-            if (modCount != expectedModCount) {
+            if (modificationCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
             next = successor(e);
