@@ -40,7 +40,6 @@ public class ArrayListCustom<E> implements Iterable<E> {
     }
     
     public void set(int index, E value) {
-        E oldValue = get(index);
         elementData[index] = value;
     }
     
