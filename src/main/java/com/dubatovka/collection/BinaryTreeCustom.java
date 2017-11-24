@@ -5,7 +5,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<BinaryTreeCustom.Node<K, V>> {
+public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K, V>> {
     private Node<K, V> root;
     private int size;
     private int modificationCount = 0;
@@ -20,52 +20,10 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         this.comparator = comparator;
     }
     
-    static final class Node<K, V> {
-        private K key;
-        private V value;
-        private Node<K, V> parent;
-        private Node<K, V> left;
-        private Node<K, V> right;
-        
-        private Node(K key, V value, Node<K, V> parent) {
-            this.key = key;
-            this.value = value;
-            this.parent = parent;
-        }
-        
-        public K getKey() {
-            return key;
-        }
-        
-        public V getValue() {
-            return value;
-        }
-        
-        public V setValue(V value) {
-            V oldValue = this.value;
-            this.value = value;
-            return oldValue;
-        }
-        
-        public boolean equals(Object o) {
-            if (!(o instanceof BinaryTreeCustom.Node))
-                return false;
-            Node<?, ?> e = (Node<?, ?>) o;
-            
-            return valEquals(key, e.getKey()) && valEquals(value, e.getValue());
-        }
-        
-        public int hashCode() {
-            int keyHash = (key == null ? 0 : key.hashCode());
-            int valueHash = (value == null ? 0 : value.hashCode());
-            return keyHash ^ valueHash;
-        }
-    }
-    
     public V get(K key) {
         Node<K, V> x = root;
         while (x != null) {
-            int cmp = key.compareTo(x.key);
+            int cmp = compare(key, x.key);
             if (cmp == 0) {
                 return x.value;
             }
@@ -83,7 +41,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         Node<K, V> x = root;
         Node<K, V> y = null;
         while (x != null) {
-            int cmp = key.compareTo(x.key);
+            int cmp = compare(key, x.key);
             if (cmp == 0) {
                 x.value = value;
                 return;
@@ -101,7 +59,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         if (y == null) {
             root = newNode;
         } else {
-            if (key.compareTo(y.key) < 0) {
+            if (compare(key, y.key) < 0) {
                 y.left = newNode;
             } else {
                 y.right = newNode;
@@ -115,7 +73,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         Node<K, V> x = root;
         Node<K, V> prevLevelRoot = null;
         while (x != null) {
-            int cmp = key.compareTo(x.key);
+            int cmp = compare(key, x.key);
             if (cmp == 0) {
                 break;
             } else {
@@ -158,10 +116,6 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         size--;
     }
     
-    public Node<K, V> next() {
-        return null;
-    }
-    
     public int size() {
         return size;
     }
@@ -184,19 +138,66 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
         }
     }
     
-    private static boolean valEquals(Object o1, Object o2) {
-        if (o1 == null) {
-            return o2 == null;
+    private Node<K, V> getFirstInOrderNode() {
+        Node<K, V> p = root;
+        if (p != null) {
+            while (p.left != null) {
+                p = p.left;
+            }
+        }
+        return p;
+    }
+    
+    private Node<K, V> getNextInOrderNode(Node<K, V> prevNode) {
+        if (prevNode == null) {
+            return null;
+        } else if (prevNode.right != null) {
+            Node<K, V> p = prevNode.right;
+            while (p.left != null) {
+                p = p.left;
+            }
+            return p;
         } else {
-            return o1.equals(o2);
+            Node<K, V> p = prevNode.parent;
+            Node<K, V> ch = prevNode;
+            while (p != null && ch == p.right) {
+                ch = p;
+                p = p.parent;
+            }
+            return p;
         }
     }
     
+    public static final class Node<K, V> {
+        private K key;
+        private V value;
+        private Node<K, V> parent;
+        private Node<K, V> left;
+        private Node<K, V> right;
+        
+        private Node(K key, V value, Node<K, V> parent) {
+            this.key = key;
+            this.value = value;
+            this.parent = parent;
+        }
+        
+        public K getKey() {
+            return key;
+        }
+        
+        public V getValue() {
+            return value;
+        }
+        
+        public void setValue(V value) {
+            this.value = value;
+        }
+    }
     
     private class IteratorCustom implements Iterator<Node<K, V>> {
-        Node<K, V> nextToReturn;
-        Node<K, V> lastReturned;
-        int expectedModificationCount;
+        private Node<K, V> nextToReturn;
+        private Node<K, V> lastReturned;
+        private int expectedModificationCount;
         
         IteratorCustom(Node<K, V> first) {
             expectedModificationCount = modificationCount;
@@ -218,40 +219,9 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
             if (modificationCount != expectedModificationCount) {
                 throw new ConcurrentModificationException();
             }
-            nextToReturn = successor(e);
+            nextToReturn = getNextInOrderNode(e);
             lastReturned = e;
             return e;
         }
     }
-    
-    private Node<K, V> getFirstInOrderNode() {
-        Node<K, V> p = root;
-        if (p != null) {
-            while (p.left != null) {
-                p = p.left;
-            }
-        }
-        return p;
-    }
-    
-    private Node<K, V> successor(Node<K, V> t) {
-        if (t == null) {
-            return null;
-        } else if (t.right != null) {
-            Node<K, V> p = t.right;
-            while (p.left != null) {
-                p = p.left;
-            }
-            return p;
-        } else {
-            Node<K, V> p = t.parent;
-            Node<K, V> ch = t;
-            while (p != null && ch == p.right) {
-                ch = p;
-                p = p.parent;
-            }
-            return p;
-        }
-    }
-    
 }

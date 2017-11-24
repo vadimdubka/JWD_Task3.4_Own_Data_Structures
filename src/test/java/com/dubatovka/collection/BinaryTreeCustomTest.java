@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
@@ -51,11 +52,11 @@ public class BinaryTreeCustomTest {
         String value3 = tree.get(3);
         Assert.assertEquals(null, value2);
         Assert.assertEquals("three", value3);
-    
+        
         tree.remove(0);
         tree.remove(1);
         tree.remove(3);
-    
+        
         Assert.assertEquals(true, tree.isEmpty());
     }
     
@@ -113,7 +114,7 @@ public class BinaryTreeCustomTest {
         tree.add(2, "two");
         
         Assert.assertEquals(6, tree.size());
-    
+        
         int counter = 0;
         Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
         while (iterator.hasNext()) {
@@ -122,7 +123,36 @@ public class BinaryTreeCustomTest {
             counter++;
         }
         Assert.assertEquals(6, counter);
+        
+        for (int i = 0; i < tree.size(); i++) {
+            Assert.assertEquals(list.get(i), arr[i]);
+        }
+    }
     
+    @Test
+    public void reverseOrder() {
+        BinaryTreeCustom<Integer, String> tree = new BinaryTreeCustom<>(Comparator.reverseOrder());
+        String[] arr = {"seven", "five", "three", "two", "one", "zero"};
+        ArrayList<String> list = new ArrayList<>(6);
+        
+        tree.add(1, "one");
+        tree.add(3, "three");
+        tree.add(7, "seven");
+        tree.add(0, "zero");
+        tree.add(5, "five");
+        tree.add(2, "two");
+        
+        Assert.assertEquals(6, tree.size());
+        
+        int counter = 0;
+        Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
+        while (iterator.hasNext()) {
+            BinaryTreeCustom.Node<Integer, String> node = iterator.next();
+            list.add(node.getValue());
+            counter++;
+        }
+        Assert.assertEquals(6, counter);
+        
         for (int i = 0; i < tree.size(); i++) {
             Assert.assertEquals(list.get(i), arr[i]);
         }
