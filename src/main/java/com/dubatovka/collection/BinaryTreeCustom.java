@@ -22,15 +22,16 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
     }
     
     static final class Node<K, V> {
-        K key;
-        V value;
-        Node<K, V> parent;
-        Node<K, V> left;
-        Node<K, V> right;
+        private K key;
+        private V value;
+        private Node<K, V> parent;
+        private Node<K, V> left;
+        private Node<K, V> right;
         
-        Node(K key, V value) {
+        private Node(K key, V value, Node<K, V> parent) {
             this.key = key;
             this.value = value;
+            this.parent = parent;
         }
         
         public K getKey() {
@@ -97,7 +98,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
             }
         }
         
-        Node<K, V> newNode = new Node<K, V>(key, value);
+        Node<K, V> newNode = new Node<K, V>(key, value, y);
         if (y == null) {
             root = newNode;
         } else {
@@ -172,7 +173,7 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
     
     @Override
     public Iterator<Node<K, V>> iterator() {
-        return new EntryIterator(getFirstEntry());
+        return new IteratorCustom(getFirstInOrderNode());
     }
     
     @SuppressWarnings("unchecked")
@@ -193,42 +194,38 @@ public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<Bi
     }
     
     
-    final class EntryIterator implements Iterator<Node<K, V>> {
-        Node<K, V> next;
+    private class IteratorCustom implements Iterator<Node<K, V>> {
+        Node<K, V> nextToReturn;
         Node<K, V> lastReturned;
-        int expectedModCount;
+        int expectedModificationCount;
         
-        EntryIterator(Node<K, V> first) {
-            expectedModCount = modificationCount;
+        IteratorCustom(Node<K, V> first) {
+            expectedModificationCount = modificationCount;
             lastReturned = null;
-            next = first;
+            nextToReturn = first;
         }
         
         @Override
         public final boolean hasNext() {
-            return next != null;
+            return nextToReturn != null;
         }
         
         @Override
         public Node<K, V> next() {
-            return nextEntry();
-        }
-        
-        public Node<K, V> nextEntry() {
-            Node<K, V> e = next;
+            Node<K, V> e = nextToReturn;
             if (e == null) {
                 throw new NoSuchElementException();
             }
-            if (modificationCount != expectedModCount) {
+            if (modificationCount != expectedModificationCount) {
                 throw new ConcurrentModificationException();
             }
-            next = successor(e);
+            nextToReturn = successor(e);
             lastReturned = e;
             return e;
         }
     }
     
-    private Node<K, V> getFirstEntry() {
+    private Node<K, V> getFirstInOrderNode() {
         Node<K, V> p = root;
         if (p != null) {
             while (p.left != null) {

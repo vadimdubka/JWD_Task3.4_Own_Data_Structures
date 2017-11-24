@@ -3,6 +3,7 @@ package com.dubatovka.collection;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
@@ -50,6 +51,12 @@ public class BinaryTreeCustomTest {
         String value3 = tree.get(3);
         Assert.assertEquals(null, value2);
         Assert.assertEquals("three", value3);
+    
+        tree.remove(0);
+        tree.remove(1);
+        tree.remove(3);
+    
+        Assert.assertEquals(true, tree.isEmpty());
     }
     
     @Test
@@ -92,32 +99,32 @@ public class BinaryTreeCustomTest {
         }
     }
     
-    //TODO сделать невидимыми внутренник класс итератора и в ноде не додоступны поля
-    
     @Test
     public void order() {
         BinaryTreeCustom<Integer, String> tree = new BinaryTreeCustom<>();
+        String[] arr = {"zero", "one", "two", "three", "five", "seven"};
+        ArrayList<String> list = new ArrayList<>(6);
+        
         tree.add(1, "one");
         tree.add(3, "three");
+        tree.add(7, "seven");
         tree.add(0, "zero");
+        tree.add(5, "five");
         tree.add(2, "two");
+        
+        Assert.assertEquals(6, tree.size());
     
-        for (BinaryTreeCustom.Node<Integer, String> node : tree) {
-            System.out.println(node.getKey() + " - " + node.getValue());
+        int counter = 0;
+        Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
+        while (iterator.hasNext()) {
+            BinaryTreeCustom.Node<Integer, String> node = iterator.next();
+            list.add(node.getValue());
+            counter++;
         }
+        Assert.assertEquals(6, counter);
     
-        String[] arr = {"zero", "one", "two", "three"};
-        
-       /* for (int i = 0; i < tree.size(); i++) {
-            System.out.println(t);
-        }*/
+        for (int i = 0; i < tree.size(); i++) {
+            Assert.assertEquals(list.get(i), arr[i]);
+        }
     }
-    
-    
-    @Test
-    public void isEmpty() {
-        
-    }
-    
-    
 }
