@@ -5,7 +5,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-//TODO сделать поиск в других поллекциях
 public class BinaryTreeCustom<K extends Comparable<K>, V> implements Iterable<BinaryTreeCustom.Node<K, V>> {
     private Node<K, V> root;
     private int size;
