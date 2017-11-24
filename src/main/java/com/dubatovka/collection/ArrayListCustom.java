@@ -1,6 +1,9 @@
 package com.dubatovka.collection;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class ArrayListCustom<E> implements Iterable<E> {
     private static final int INITIAL_CAPACITY = 10;

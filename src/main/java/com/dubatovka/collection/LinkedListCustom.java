@@ -1,6 +1,9 @@
 package com.dubatovka.collection;
 
-import java.util.*;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 public class LinkedListCustom<E> implements Iterable<E> {
     private static final String templateMessage = "Index: %d, Size: %d";
@@ -51,6 +54,10 @@ public class LinkedListCustom<E> implements Iterable<E> {
     
     public int size() {
         return size;
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
     }
     
     @Override
