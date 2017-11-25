@@ -4,16 +4,14 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public class LinkedListCustom<E> implements Iterable<E> {
-    private static final String templateMessage = "Index: %d, Size: %d";
+    private static final String TEMPLATE_MESSAGE = "Index: %d, Size: %d";
     private Node<E> head;
     private Node<E> last;
     private int size;
     private int modificationCount = 0;
-    
-    public LinkedListCustom() {
-    }
     
     public void add(E value) {
         linkLast(value);
@@ -71,8 +69,9 @@ public class LinkedListCustom<E> implements Iterable<E> {
     
     private Node<E> getNode(int index) {
         Node<E> x = head;
-        for (int i = 0; i < index; i++)
+        for (int i = 0; i < index; i++) {
             x = x.next;
+        }
         return x;
     }
     
@@ -142,40 +141,56 @@ public class LinkedListCustom<E> implements Iterable<E> {
     }
     
     private void checkPositionIndex(int index) {
-        boolean check = (index >= 0 && index <= size);
-        if (!check) {
-            String message = String.format(templateMessage, index, size);
+        boolean wrong = (index < 0) || (index > size);
+        if (wrong) {
+            String message = String.format(TEMPLATE_MESSAGE, index, size);
             throw new IndexOutOfBoundsException(message);
         }
     }
     
     private void checkElementIndex(int index) {
-        boolean check = (index >= 0 && index < size);
-        if (!check) {
-            String message = String.format(templateMessage, index, size);
+        boolean wrong = (index < 0) || (index >= size);
+        if (wrong) {
+            String message = String.format(TEMPLATE_MESSAGE, index, size);
             throw new IndexOutOfBoundsException(message);
         }
     }
     
     private static class Node<E> {
-        E data;
-        Node<E> next;
-        Node<E> previous;
+        private E data;
+        private Node<E> next;
+        private Node<E> previous;
         
         Node(Node<E> previous, E element, Node<E> next) {
             this.data = element;
             this.next = next;
             this.previous = previous;
         }
+    
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Node)) return false;
+        
+            Node<?> node = (Node<?>) obj;
+    
+            return (data != null) ? data.equals(node.data) : (node.data == null);
+    
+        }
+    
+        @Override
+        public int hashCode() {
+            return (data != null) ? data.hashCode() : 0;
+        }
     }
     
-    private class ListIteratorCustom implements ListIterator<E> {
+    private final class ListIteratorCustom implements ListIterator<E> {
         private int nextIndex;
         private Node<E> nextToReturn;
         private Node<E> lastReturned;
         private int expectedModificationCount = modificationCount;
         
-        ListIteratorCustom(int index) {
+        private ListIteratorCustom(int index) {
             nextIndex = index;
             boolean isLast = (index == size);
             if (isLast) {
@@ -185,14 +200,17 @@ public class LinkedListCustom<E> implements Iterable<E> {
             }
         }
         
+        @Override
         public boolean hasNext() {
             return nextIndex < size;
         }
         
+        @Override
         public boolean hasPrevious() {
             return nextIndex > 0;
         }
         
+        @Override
         public E next() {
             checkForOuterModification();
             if (!hasNext()) {
@@ -206,6 +224,7 @@ public class LinkedListCustom<E> implements Iterable<E> {
             return data;
         }
         
+        @Override
         public E previous() {
             checkForOuterModification();
             if (!hasPrevious()) {
@@ -224,6 +243,7 @@ public class LinkedListCustom<E> implements Iterable<E> {
             return data;
         }
         
+        @Override
         public void remove() {
             checkForOuterModification();
             if (lastReturned == null) {
@@ -233,7 +253,7 @@ public class LinkedListCustom<E> implements Iterable<E> {
             Node<E> lastNext = lastReturned.next;
             deleteLinks(lastReturned);
             expectedModificationCount++;
-            if (nextToReturn == lastReturned) {
+            if (Objects.equals(nextToReturn, lastReturned)) {
                 nextToReturn = lastNext;
             } else {
                 nextIndex--;
@@ -241,14 +261,17 @@ public class LinkedListCustom<E> implements Iterable<E> {
             lastReturned = null;
         }
         
+        @Override
         public int nextIndex() {
             return nextIndex;
         }
         
+        @Override
         public int previousIndex() {
             return nextIndex - 1;
         }
         
+        @Override
         public void set(E value) {
             if (lastReturned == null) {
                 throw new IllegalStateException();
@@ -257,6 +280,7 @@ public class LinkedListCustom<E> implements Iterable<E> {
             lastReturned.data = value;
         }
         
+        @Override
         public void add(E value) {
             checkForOuterModification();
             lastReturned = null;
@@ -269,7 +293,7 @@ public class LinkedListCustom<E> implements Iterable<E> {
             expectedModificationCount++;
         }
         
-        final void checkForOuterModification() {
+        private void checkForOuterModification() {
             if (modificationCount != expectedModificationCount) {
                 throw new ConcurrentModificationException();
             }

@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K, V>> {
     private Node<K, V> root;
@@ -21,11 +22,12 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
     }
     
     public V get(K key) {
+        V value = null;
         Node<K, V> x = root;
         while (x != null) {
             int cmp = compare(key, x.key);
             if (cmp == 0) {
-                return x.value;
+                value = x.value;
             }
             if (cmp < 0) {
                 x = x.left;
@@ -33,7 +35,7 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
                 x = x.right;
             }
         }
-        return null;
+        return value;
     }
     
     public void add(K key, V value) {
@@ -55,7 +57,7 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
             }
         }
         
-        Node<K, V> newNode = new Node<K, V>(key, value, y);
+        Node<K, V> newNode = new Node<>(key, value, y);
         if (y == null) {
             root = newNode;
         } else {
@@ -74,25 +76,45 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
         Node<K, V> prevLevelRoot = null;
         while (x != null) {
             int cmp = compare(key, x.key);
-            if (cmp == 0) {
-                break;
-            } else {
+            if (cmp != 0) {
                 prevLevelRoot = x;
                 if (cmp < 0) {
                     x = x.left;
                 } else {
                     x = x.right;
                 }
+            } else {
+                break;
             }
         }
+        
         if (x == null) {
             return;
         }
+        
+        unlinkNode(x, prevLevelRoot);
+    }
+    
+    public int size() {
+        return size;
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
+    }
+    
+    @Override
+    public Iterator<Node<K, V>> iterator() {
+        Node<K, V> firstInOrderNode = getFirstInOrderNode();
+        return new IteratorCustom(firstInOrderNode);
+    }
+    
+    private void unlinkNode(Node<K, V> x, Node<K, V> prevLevelRoot) {
         if (x.right == null) {
             if (prevLevelRoot == null) {
                 root = x.left;
             } else {
-                if (x == prevLevelRoot.left) {
+                if (Objects.equals(x, prevLevelRoot.left)) {
                     prevLevelRoot.left = x.left;
                 } else {
                     prevLevelRoot.right = x.left;
@@ -116,56 +138,25 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
         size--;
     }
     
-    public int size() {
-        return size;
-    }
-    
-    public boolean isEmpty() {
-        return size == 0;
-    }
-    
-    @Override
-    public Iterator<Node<K, V>> iterator() {
-        return new IteratorCustom(getFirstInOrderNode());
-    }
-    
     @SuppressWarnings("unchecked")
     private int compare(Object k1, Object k2) {
+        int result;
         if (comparator == null) {
-            return ((Comparable<? super K>) k1).compareTo((K) k2);
+            result = ((Comparable<? super K>) k1).compareTo((K) k2);
         } else {
-            return comparator.compare((K) k1, (K) k2);
+            result = comparator.compare((K) k1, (K) k2);
         }
+        return result;
     }
     
     private Node<K, V> getFirstInOrderNode() {
-        Node<K, V> p = root;
-        if (p != null) {
-            while (p.left != null) {
-                p = p.left;
+        Node<K, V> t = root;
+        if (t != null) {
+            while (t.left != null) {
+                t = t.left;
             }
         }
-        return p;
-    }
-    
-    private Node<K, V> getNextInOrderNode(Node<K, V> prevNode) {
-        if (prevNode == null) {
-            return null;
-        } else if (prevNode.right != null) {
-            Node<K, V> p = prevNode.right;
-            while (p.left != null) {
-                p = p.left;
-            }
-            return p;
-        } else {
-            Node<K, V> p = prevNode.parent;
-            Node<K, V> ch = prevNode;
-            while (p != null && ch == p.right) {
-                ch = p;
-                p = p.parent;
-            }
-            return p;
-        }
+        return t;
     }
     
     public static final class Node<K, V> {
@@ -192,16 +183,41 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
         public void setValue(V value) {
             this.value = value;
         }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Node)) return false;
+            
+            Node<?, ?> node = (Node<?, ?>) o;
+            
+            if (key != null) {
+                if (!key.equals(node.key)) {
+                    return false;
+                }
+            } else {
+                if (node.key != null) {
+                    return false;
+                }
+            }
+            return (value != null) ? value.equals(node.value) : (node.value == null);
+            
+        }
+        
+        @Override
+        public int hashCode() {
+            int result = (key != null) ? key.hashCode() : 0;
+            result = (31 * result) + ((value != null) ? value.hashCode() : 0);
+            return result;
+        }
     }
     
     private class IteratorCustom implements Iterator<Node<K, V>> {
         private Node<K, V> nextToReturn;
-        private Node<K, V> lastReturned;
         private int expectedModificationCount;
         
         IteratorCustom(Node<K, V> first) {
             expectedModificationCount = modificationCount;
-            lastReturned = null;
             nextToReturn = first;
         }
         
@@ -220,8 +236,39 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
                 throw new ConcurrentModificationException();
             }
             nextToReturn = getNextInOrderNode(e);
-            lastReturned = e;
             return e;
         }
+        
+        private Node<K, V> getNextInOrderNode(Node<K, V> currentNode) {
+            Node<K, V> nextInOrderNode;
+            if (currentNode == null) {
+                nextInOrderNode = null;
+            } else {
+                boolean hasRightBranch = currentNode.right != null;
+                if (hasRightBranch) {
+                    nextInOrderNode = findMostLeftNodeInRightBranch(currentNode);
+                } else {
+                    Node<K, V> superParent = currentNode.parent;
+                    Node<K, V> t = currentNode;
+                    while ((superParent != null) && Objects.equals(t, superParent.right)) {
+                        t = superParent;
+                        superParent = superParent.parent;
+                    }
+                    nextInOrderNode = superParent;
+                }
+            }
+            
+            return nextInOrderNode;
+        }
+    
+        private Node<K, V> findMostLeftNodeInRightBranch(Node<K, V> currentNode) {
+            Node<K, V> t = currentNode.right;
+            while (t.left != null) {
+                t = t.left;
+            }
+            return t;
+        }
     }
+    
+    
 }
