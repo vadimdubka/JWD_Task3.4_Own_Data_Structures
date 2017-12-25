@@ -29,11 +29,7 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
             if (cmp == 0) {
                 value = x.value;
             }
-            if (cmp < 0) {
-                x = x.left;
-            } else {
-                x = x.right;
-            }
+            x = (cmp < 0) ? x.left : x.right;
         }
         return value;
     }
@@ -49,11 +45,7 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
                 return;
             } else {
                 y = x;
-                if (cmp < 0) {
-                    x = x.left;
-                } else {
-                    x = x.right;
-                }
+                x = (cmp < 0) ? x.left : x.right;
             }
         }
         
@@ -76,23 +68,14 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
         Node<K, V> prevLevelRoot = null;
         while (x != null) {
             int cmp = compare(key, x.key);
-            if (cmp != 0) {
-                prevLevelRoot = x;
-                if (cmp < 0) {
-                    x = x.left;
-                } else {
-                    x = x.right;
-                }
+            if (cmp == 0) {
+                unlinkNode(x, prevLevelRoot);
+                return;
             } else {
-                break;
+                prevLevelRoot = x;
+                x = (cmp < 0) ? x.left : x.right;
             }
         }
-        
-        if (x == null) {
-            return;
-        }
-        
-        unlinkNode(x, prevLevelRoot);
     }
     
     public int size() {
@@ -121,19 +104,22 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
                 }
             }
         } else {
-            Node<K, V> leftMost = x.right;
             prevLevelRoot = null;
+            Node<K, V> leftMost = x.right;
             while (leftMost.left != null) {
                 prevLevelRoot = leftMost;
                 leftMost = leftMost.left;
             }
+            
+            x.key = leftMost.key;
+            x.value = leftMost.value;
+            
             if (prevLevelRoot != null) {
                 prevLevelRoot.left = leftMost.right;
             } else {
                 x.right = leftMost.right;
             }
-            x.key = leftMost.key;
-            x.value = leftMost.value;
+            
         }
         size--;
     }
@@ -214,7 +200,12 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
     
     private class IteratorCustom implements Iterator<Node<K, V>> {
         private Node<K, V> nextToReturn;
-        private int expectedModificationCount;
+        private int expectedModificationCount = modificationCount;
+    
+        IteratorCustom() {
+            expectedModificationCount = modificationCount;
+            nextToReturn = null;
+        }
         
         IteratorCustom(Node<K, V> first) {
             expectedModificationCount = modificationCount;
@@ -240,10 +231,9 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
         }
         
         private Node<K, V> getNextInOrderNode(Node<K, V> currentNode) {
-            Node<K, V> nextInOrderNode;
-            if (currentNode == null) {
-                nextInOrderNode = null;
-            } else {
+            Node<K, V> nextInOrderNode = null;
+            
+            if (currentNode != null) {
                 boolean hasRightBranch = currentNode.right != null;
                 if (hasRightBranch) {
                     nextInOrderNode = findMostLeftNodeInRightBranch(currentNode);
@@ -260,7 +250,7 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
             
             return nextInOrderNode;
         }
-    
+        
         private Node<K, V> findMostLeftNodeInRightBranch(Node<K, V> currentNode) {
             Node<K, V> t = currentNode.right;
             while (t.left != null) {
@@ -269,6 +259,4 @@ public class BinaryTreeCustom<K, V> implements Iterable<BinaryTreeCustom.Node<K,
             return t;
         }
     }
-    
-    
 }

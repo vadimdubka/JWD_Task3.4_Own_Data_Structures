@@ -166,18 +166,18 @@ public class LinkedListCustom<E> implements Iterable<E> {
             this.next = next;
             this.previous = previous;
         }
-    
+        
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
             if (!(obj instanceof Node)) return false;
-        
+            
             Node<?> node = (Node<?>) obj;
-    
+            
             return (data != null) ? data.equals(node.data) : (node.data == null);
-    
+            
         }
-    
+        
         @Override
         public int hashCode() {
             return (data != null) ? data.hashCode() : 0;
@@ -190,12 +190,14 @@ public class LinkedListCustom<E> implements Iterable<E> {
         private Node<E> lastReturned;
         private int expectedModificationCount = modificationCount;
         
+        private ListIteratorCustom() {
+            this(0);
+        }
+        
         private ListIteratorCustom(int index) {
             nextIndex = index;
-            boolean isLast = (index == size);
-            if (isLast) {
-                nextToReturn = null;
-            } else {
+            boolean hasNext = index < size;
+            if (hasNext) {
                 nextToReturn = getNode(index);
             }
         }

@@ -24,7 +24,6 @@ public class ArrayListCustom<E> implements Iterable<E> {
         } else {
             throw new IllegalArgumentException("Illegal Capacity: " + initCapacity);
         }
-        
     }
     
     public void add(E value) {
@@ -119,8 +118,7 @@ public class ArrayListCustom<E> implements Iterable<E> {
                 return next;
             } catch (IndexOutOfBoundsException e) {
                 checkForOuterModification();
-                String message = e.getMessage();
-                throw new NoSuchElementException(message);
+                throw new NoSuchElementException(e.getMessage());
             }
         }
         
