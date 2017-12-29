@@ -3,10 +3,7 @@ package com.dubatovka.collection;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
+import java.util.*;
 
 public class BinaryTreeCustomTest {
     
@@ -104,8 +101,7 @@ public class BinaryTreeCustomTest {
     public void order() {
         BinaryTreeCustom<Integer, String> tree = new BinaryTreeCustom<>();
         String[] arr = {"zero", "one", "two", "three", "five", "seven"};
-        ArrayList<String> list = new ArrayList<>(6);
-        
+    
         tree.add(1, "one");
         tree.add(3, "three");
         tree.add(7, "seven");
@@ -117,6 +113,7 @@ public class BinaryTreeCustomTest {
         
         int counter = 0;
         Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
+        List<String> list = new ArrayList<>(6);
         while (iterator.hasNext()) {
             BinaryTreeCustom.Node<Integer, String> node = iterator.next();
             list.add(node.getValue());
@@ -133,8 +130,7 @@ public class BinaryTreeCustomTest {
     public void reverseOrder() {
         BinaryTreeCustom<Integer, String> tree = new BinaryTreeCustom<>(Comparator.reverseOrder());
         String[] arr = {"seven", "five", "three", "two", "one", "zero"};
-        ArrayList<String> list = new ArrayList<>(6);
-        
+    
         tree.add(1, "one");
         tree.add(3, "three");
         tree.add(7, "seven");
@@ -146,12 +142,41 @@ public class BinaryTreeCustomTest {
         
         int counter = 0;
         Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
+        List<String> list = new ArrayList<>(6);
         while (iterator.hasNext()) {
             BinaryTreeCustom.Node<Integer, String> node = iterator.next();
             list.add(node.getValue());
             counter++;
         }
         Assert.assertEquals(6, counter);
+        
+        for (int i = 0; i < tree.size(); i++) {
+            Assert.assertEquals(list.get(i), arr[i]);
+        }
+    }
+    
+    @Test
+    public void deleteRootNode() {
+        BinaryTreeCustom<Integer, String> tree = new BinaryTreeCustom<>();
+        String[] arr = {"zero", "one", "two", "five", "seven"};
+    
+        tree.add(3, "three");
+        tree.add(1, "one");
+        tree.add(7, "seven");
+        tree.add(0, "zero");
+        tree.add(5, "five");
+        tree.add(2, "two");
+        
+        tree.remove(3);
+        
+        int counter = 0;
+        Iterator<BinaryTreeCustom.Node<Integer, String>> iterator = tree.iterator();
+        List<String> list = new ArrayList<>(6);
+        while (iterator.hasNext()) {
+            BinaryTreeCustom.Node<Integer, String> node = iterator.next();
+            list.add(node.getValue());
+            counter++;
+        }
         
         for (int i = 0; i < tree.size(); i++) {
             Assert.assertEquals(list.get(i), arr[i]);
